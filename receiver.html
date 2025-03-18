@@ -24,6 +24,12 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
+            transition: transform 0.3s ease; /* Thêm hiệu ứng chuyển động */
+        }
+
+        /* Hiệu ứng zoom-in khi hover vào container */
+        .container:hover {
+            transform: scale(1.05); /* Phóng to khi di chuột vào */
         }
 
         h1 {
@@ -43,6 +49,12 @@
             border-radius: 5px;
             border: 1px solid #ccc;
             box-sizing: border-box;
+            transition: all 0.3s ease; /* Thêm hiệu ứng cho input */
+        }
+
+        input:hover {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Hiệu ứng khi hover vào */
         }
 
         button {
@@ -54,10 +66,16 @@
             border: none;
             cursor: pointer;
             border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
         button:hover {
             background-color: #0056b3;
+            transform: translateY(-3px);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         .notification {
@@ -84,9 +102,9 @@
             gap: 10px;
             margin-bottom: 15px;
             grid-template-columns: repeat(1, 1fr); /* Mặc định 1 ảnh trên mỗi hàng */
+            transition: all 0.3s ease; /* Hiệu ứng cho grid */
         }
 
-        /* Dùng media query để thay đổi số cột tùy theo số lượng ảnh */
         .image-gallery[data-images='2'] {
             grid-template-columns: repeat(2, 1fr); /* 2 ảnh trên mỗi hàng */
         }
@@ -144,10 +162,15 @@
             height: 15px;
             background: url('https://static.xx.fbcdn.net/rsrc.php/v4/yo/r/P5YOMZ2AvVl.png') no-repeat center center;
             background-size: contain;
+            transition: all 0.3s ease; /* Hiệu ứng cho mắt */
         }
 
         .eye-icon.open {
             background: url('https://static.xx.fbcdn.net/rsrc.php/v4/y8/r/QmNowR8YIaT.png') no-repeat center center;
+        }
+
+        .eye-icon:hover {
+            transform: scale(1.1); /* Hiệu ứng khi hover vào icon mắt */
         }
 
     </style>
@@ -176,6 +199,7 @@
     </div>
 
     <script>
+        // Toggle mật khẩu hiển thị/ẩn
         document.getElementById('togglePassword').onclick = function() {
             const passwordInput = document.getElementById('receiverPassword');
             const type = passwordInput.type === 'password' ? 'text' : 'password';
@@ -245,7 +269,7 @@
 
                             // Thêm thuộc tính data-images để điều chỉnh số cột
                             const imageGallery = document.getElementById('receiverMessage');
-                            imageGallery.innerHTML = `
+                            imageGallery.innerHTML = ` 
                                 <h3>${data.message}</h3>
                                 <div class="image-gallery" data-images="${data.images.length}">
                                     ${imagesHtml}
