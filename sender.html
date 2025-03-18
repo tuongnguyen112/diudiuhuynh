@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Tin Người Gửi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 600px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Bảng thông báo */
+        .notification {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .notification.success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .notification.error {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* Icon mắt */
+        .form-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            padding-right: 40px; /* Tạo khoảng trống cho icon mắt */
+            box-sizing: border-box;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        /* Đảm bảo icon con mắt căn giữa chính xác */
+        .eye-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(25%); /* Căn giữa theo chiều dọc */
+            cursor: pointer;
+            width: 15px;
+            height: 15px;
+            background: url('https://static.xx.fbcdn.net/rsrc.php/v4/yo/r/P5YOMZ2AvVl.png') no-repeat center center;
+            background-size: contain;
+        }
+
+        .eye-icon.open {
+            background: url('https://static.xx.fbcdn.net/rsrc.php/v4/y8/r/QmNowR8YIaT.png') no-repeat center center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Thông Tin Người Gửi</h1>
+        <form id="senderFormData" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="senderId">ID Người Gửi</label>
+                <input type="text" id="senderId" name="senderId" required>
+            </div>
+            <div class="form-group">
+                <label for="senderPassword">Mật khẩu</label>
+                <input type="password" id="senderPassword" name="senderPassword" required>
+                <span class="eye-icon" id="togglePassword"></span> <!-- Icon mắt -->
+            </div>
+            <div class="form-group">
+                <label for="message">Lời Chúc</label>
+                <textarea id="message" name="message" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="imageFiles">Tải lên ảnh</label>
+                <input type="file" id="imageFiles" name="imageFiles[]" accept="image/*" multiple required>
+            </div>
+            <div class="form-group">
+                <label for="musicFiles">Tải lên file nhạc</label>
+                <input type="file" id="musicFiles" name="musicFiles[]" accept=".mp3,.wav" />
+            </div>
+            <button type="submit">Tạo Thông Tin Người Gửi</button>
+        </form>
+
+        <!-- Bảng thông báo -->
+        <div class="notification success" id="successMessage">
+            Thông tin đã được tạo thành công! <br>
+            Quay lại trang chủ sau <span id="countdownTimer">3</span> giây.
+        </div>
+        <div class="notification error" id="errorMessage">
+            <!-- Thông báo lỗi chi tiết sẽ được hiển thị ở đây -->
+        </div>
+    </div>
+
+    <script>
+        // Toggle mật khẩu hiển thị/ẩn
+        document.getElementById('togglePassword').onclick = function() {
+            const passwordInput = document.getElementById('senderPassword');
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+
+            // Toggle biểu tượng mắt
+            this.classList.toggle('open');
+        };
+
+        document.getElementById('senderFormData').onsubmit = async function(e) {
+            e.preventDefault();
+
+            // Lấy giá trị từ các trường
+            const senderId = document.getElementById('senderId').value;
+            const senderPassword = document.getElementById('senderPassword').value;
+            const message = document.getElementById('message').value;
+            const imageFiles = document.getElementById('imageFiles').files;
+            const musicFiles = document.getElementById('musicFiles').files;
+
+            // Kiểm tra các trường bắt buộc
+            let errors = [];
+
+            if (!senderId) {
+                errors.push("ID Người Gửi không được để trống.");
+            }
+
+            if (!senderPassword) {
+                errors.push("Mật khẩu không được để trống.");
+            }
+
+            if (!message) {
+                errors.push("Lời chúc không được để trống.");
+            }
+
+            if (imageFiles.length === 0) {
+                errors.push("Bạn phải tải lên ít nhất một bức ảnh.");
+            }
+
+            if (errors.length > 0) {
+                // Hiển thị thông báo lỗi
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.style.display = 'block';
+                errorMessage.innerHTML = errors.join("<br>");
+
+                return; // Dừng việc gửi form nếu có lỗi
+            }
+
+            const formData = new FormData();
+            formData.append('senderId', senderId);
+            formData.append('senderPassword', senderPassword);
+            formData.append('message', message);
+
+            // Thêm các file ảnh vào formData
+            for (let i = 0; i < imageFiles.length; i++) {
+                formData.append('imageFiles[]', imageFiles[i]);
+            }
+
+            // Thêm file nhạc nếu có (chỉ 1 file nhạc)
+            if (musicFiles.length > 0) {
+                formData.append('musicFiles[]', musicFiles[0]);
+            }
+
+            try {
+                const response = await fetch('backend_gui.php?action=create', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                // Ẩn thông báo lỗi, nếu có
+                document.getElementById('errorMessage').style.display = 'none';
+
+                if (result.success) {
+                    // Hiển thị thông báo thành công
+                    const successMessage = document.getElementById('successMessage');
+                    successMessage.style.display = 'block';
+
+                    // Đặt thời gian đếm ngược (5 giây)
+                    let countdown = 3;
+                    const countdownTimer = document.getElementById('countdownTimer');
+
+                    // Cập nhật thời gian đếm ngược mỗi giây
+                    const countdownInterval = setInterval(() => {
+                        countdown--;  // Giảm thời gian còn lại
+                        countdownTimer.textContent = countdown;  // Cập nhật hiển thị
+
+                        if (countdown === 0) {
+                            // Khi đếm ngược kết thúc, chuyển hướng về trang index.html
+                            clearInterval(countdownInterval);  // Dừng đếm ngược
+                            window.location.href = 'index.html';  // Chuyển hướng
+                        }
+                    }, 1000);  // Cập nhật mỗi giây (1000ms)
+
+                } else {
+                    // Hiển thị thông báo lỗi từ server
+                    const errorMessage = document.getElementById('errorMessage');
+                    errorMessage.style.display = 'block';
+                    errorMessage.innerHTML = result.message;
+                }
+            } catch (error) {
+                console.error('Lỗi khi gửi yêu cầu:', error);
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.style.display = 'block';
+                errorMessage.innerHTML = 'Có lỗi khi gửi yêu cầu tới server.';
+            }
+        };
+    </script>
+</body>
+</html>

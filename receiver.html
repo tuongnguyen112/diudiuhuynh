@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhận Thông Tin Người Gửi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .notification {
+            display: none;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .notification.success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .notification.error {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* Chia ảnh đều trong một hàng */
+        .image-gallery {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 15px;
+            grid-template-columns: repeat(1, 1fr); /* Mặc định 1 ảnh trên mỗi hàng */
+        }
+
+        /* Dùng media query để thay đổi số cột tùy theo số lượng ảnh */
+        .image-gallery[data-images='2'] {
+            grid-template-columns: repeat(2, 1fr); /* 2 ảnh trên mỗi hàng */
+        }
+
+        .image-gallery[data-images='3'] {
+            grid-template-columns: repeat(3, 1fr); /* 3 ảnh trên mỗi hàng */
+        }
+
+        .image-gallery[data-images='4'] {
+            grid-template-columns: repeat(4, 1fr); /* 4 ảnh trên mỗi hàng */
+        }
+
+        .image-gallery img {
+            width: 100%;
+            height: auto; /* Đảm bảo chiều cao ảnh tự động điều chỉnh theo tỉ lệ gốc */
+            object-fit: contain; /* Đảm bảo ảnh không bị cắt, giữ nguyên tỉ lệ */
+            border-radius: 10px;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: zoomIn 1s forwards; /* Hiệu ứng zoom-in */
+        }
+
+        /* Định nghĩa animation phóng to ảnh */
+        @keyframes zoomIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        #receiverMessage {
+            text-align: center;
+        }
+
+        audio {
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .eye-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(2%);
+            cursor: pointer;
+            width: 15px;
+            height: 15px;
+            background: url('https://static.xx.fbcdn.net/rsrc.php/v4/yo/r/P5YOMZ2AvVl.png') no-repeat center center;
+            background-size: contain;
+        }
+
+        .eye-icon.open {
+            background: url('https://static.xx.fbcdn.net/rsrc.php/v4/y8/r/QmNowR8YIaT.png') no-repeat center center;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="pageTitle">NHẬP THÔNG TIN NHẬN</h1>
+        <form id="receiverForm">
+            <div class="form-group">
+                <label for="receiverId">ID Người Nhận</label>
+                <input type="text" id="receiverId" name="receiverId" required>
+            </div>
+            <div class="form-group">
+                <label for="receiverPassword">Mật khẩu</label>
+                <input type="password" id="receiverPassword" name="receiverPassword" required>
+                <span class="eye-icon" id="togglePassword"></span>
+            </div>
+            <button type="submit">Nhận Thông Tin</button>
+        </form>
+
+        <!-- Phần chứa thông tin từ backend sẽ hiển thị ở đây -->
+        <div id="receiverMessage"></div>
+
+        <!-- Bảng thông báo dưới cùng -->
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script>
+        document.getElementById('togglePassword').onclick = function() {
+            const passwordInput = document.getElementById('receiverPassword');
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+
+            // Toggle biểu tượng mắt
+            this.classList.toggle('open');
+        };
+
+        document.getElementById('receiverForm').onsubmit = function(e) {
+            e.preventDefault();
+
+            const receiverId = document.getElementById('receiverId').value;
+            const receiverPassword = document.getElementById('receiverPassword').value;
+
+            const notification = document.getElementById('notification');
+            notification.style.display = 'none';
+
+            fetch('/backend_nhan.php?action=getInfo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'receiverId': receiverId,
+                    'receiverPassword': receiverPassword,
+                    'action': 'getInfo'
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Lỗi từ server: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    let imagesHtml = '';
+                    data.images.forEach(image => {
+                        imagesHtml += `<img src="${image}" class="image">`;
+                    });
+
+                    let musicHtml = '';
+                    data.musicFiles.forEach(file => {
+                        musicHtml += `<audio controls autoplay>
+                                        <source src="${file}" type="audio/mpeg">
+                                        Trình duyệt của bạn không hỗ trợ audio.
+                                    </audio><br>`;
+                    });
+
+                    notification.className = 'notification success';
+                    notification.innerHTML = 'Thông tin đã được nhận thành công! Chuyển hướng sau <span id="countdown">3</span> giây...';
+                    notification.style.display = 'block';
+
+                    let countdown = 3;
+                    const countdownElement = document.getElementById('countdown');
+                    const interval = setInterval(() => {
+                        countdown -= 1;
+                        countdownElement.innerText = countdown;
+
+                        if (countdown === 0) {
+                            clearInterval(interval);
+
+                            document.getElementById('receiverForm').classList.add('hidden');
+                            document.getElementById('pageTitle').classList.add('hidden');
+                            notification.style.display = 'none';
+
+                            // Thêm thuộc tính data-images để điều chỉnh số cột
+                            const imageGallery = document.getElementById('receiverMessage');
+                            imageGallery.innerHTML = `
+                                <h3>${data.message}</h3>
+                                <div class="image-gallery" data-images="${data.images.length}">
+                                    ${imagesHtml}
+                                </div>
+                                ${musicHtml}
+                            `;
+                        }
+                    }, 1000);
+                } else {
+                    notification.className = 'notification error';
+                    notification.innerHTML = 'Mật khẩu không đúng hoặc có lỗi xảy ra!';
+                    notification.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi gửi yêu cầu:', error);
+                notification.className = 'notification error';
+                notification.innerHTML = 'Đã có lỗi xảy ra, vui lòng thử lại.';
+                notification.style.display = 'block';
+            });
+        };
+    </script>
+</body>
+</html>
